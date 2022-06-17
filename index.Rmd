@@ -63,6 +63,11 @@ ggplot(summary_data, aes(n_shrubs, n)) +
   geom_point() +
   geom_smooth()
 
+ggplot(summary_data, aes(n_shrubs, n)) +
+  geom_point() +
+  geom_density_2d_filled(alpha = 0.5) +
+  geom_density_2d(size = 0.25, colour = "black")
+
 #climate
 ggplot(summary_data, aes(aridity, n)) +
   geom_point() +
