@@ -1,0 +1,86 @@
+---
+title: ""
+output: html_document
+date: '2022-06-17'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Field-bird counts  
+A test of avian community density patterns in The San Joaquin Desert.  
+
+
+### Data  
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+#formats current date correctly = cd
+#converts the correct date format to day of the year consecutively like Julien
+data <- read_csv("data/observations.csv") %>%
+  mutate(cd = dmy(date)) %>% 
+  mutate(yd = yday(cd))
+
+sites <- read_csv("data/sites.csv") %>% 
+  select(-lat, -long)
+
+data <- left_join(data, sites, by = "site")
+
+summary_data <- data %>% 
+  group_by(site, yd) %>% 
+  summarise(n = n()) 
+
+summary_data <- left_join(summary_data, sites, by = "site") %>% 
+  na.omit()
+
+```
+
+### Viz  
+```{r}
+#timing
+ggplot(summary_data, aes(yd, n)) +
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) +
+  labs(x= "sampling day")
+
+#sites
+ggplot(summary_data, aes(yd, n)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x= "sampling day") +
+  facet_wrap(~site)
+
+ggplot(summary_data, aes(reorder(site, n), n)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(x = "sites")
+
+#n_shrubs
+ggplot(summary_data, aes(n_shrubs, n)) +
+  geom_point() +
+  geom_smooth()
+
+#climate
+ggplot(summary_data, aes(aridity, n)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+#next steps
+#try a PCA
+#test estimate shrub density counts against imagery
+# see if you can use finer-scale 20m shrub density ~ bird counts
+
+```
+
+
+### Models  
+```{r}
+#n shrub effects
+m1 <- lm(n ~ n_shrubs, summary_data)
+summary(m1)
+```
+
+
